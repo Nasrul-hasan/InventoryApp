@@ -1,0 +1,100 @@
+﻿@model List<InventoryApp.Models.AdminUserViewModel>
+
+@{
+    ViewData["Title"] = "Admin Panel - User Management";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">
+        <i class="bi bi-shield-lock"></i> Admin Panel
+    </h2>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <h5 class="card-title">User Management</h5>
+            <p class="text-muted">Total users: @Model.Count</p>
+
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr class="@(user.IsBlocked ? "table-danger" : "")">
+                            <td>@user.DisplayName</td>
+                            <td>@user.Email</td>
+                            <td>@user.CreatedAt.ToString("dd MMM yyyy")</td>
+                            <td>
+                                @if (user.IsBlocked)
+                                {
+                                    <span class="badge bg-danger">Blocked</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                            </td>
+                            <td>
+                                @if (user.IsAdmin)
+                                {
+                                    <span class="badge bg-warning text-dark">Admin</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">User</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    @if (user.IsBlocked)
+                                    {
+                                        <form asp-action="Unblock" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button class="btn btn-sm btn-success">Unblock</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Block" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button class="btn btn-sm btn-warning">Block</button>
+                                        </form>
+                                    }
+
+                                    @if (user.IsAdmin)
+                                    {
+                                        <form asp-action="RemoveAdmin" method="post" class="d-inline ms-1">
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button class="btn btn-sm btn-outline-warning">Remove Admin</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="MakeAdmin" method="post" class="d-inline ms-1">
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            <button class="btn btn-sm btn-outline-primary">Make Admin</button>
+                                        </form>
+                                    }
+
+                                    <form asp-action="Delete" method="post" class="d-inline ms-1"
+                                          onsubmit="return confirm('Delete this user?')">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

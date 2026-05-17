@@ -1,0 +1,96 @@
+﻿@model InventoryApp.Models.ItemDetailsViewModel
+
+@{
+    var item = Model.Item;
+    var inv = item.Inventory;
+    ViewData["Title"] = item.CustomId;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h3><code>@item.CustomId</code></h3>
+            <p class="text-muted">
+                In inventory:
+                <a asp-controller="Inventory"
+                   asp-action="Details"
+                   asp-route-id="@inv.Id">@inv.Title</a>
+                | Added by @(item.CreatedBy?.DisplayName ?? item.CreatedBy?.Email)
+                | @item.CreatedAt.ToString("dd MMM yyyy")
+            </p>
+        </div>
+
+        <div class="d-flex gap-2 align-items-center">
+            @* Like Button *@
+            @if (User.Identity!.IsAuthenticated)
+            {
+                <form asp-action="ToggleLike" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <button class="btn btn-sm @(Model.UserLiked ? "btn-danger" : "btn-outline-danger")">
+                        ♥ @Model.LikeCount
+                    </button>
+                </form>
+            }
+            else
+            {
+                <span class="btn btn-sm btn-outline-danger disabled">♥ @Model.LikeCount</span>
+            }
+
+            @if (Model.HasWriteAccess)
+            {
+                <a asp-action="Edit" asp-route-id="@item.Id"
+                   class="btn btn-outline-primary btn-sm">Edit</a>
+
+                <form asp-action="Delete" method="post" class="d-inline"
+                      onsubmit="return confirm('Delete this item?')">
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <button class="btn btn-outline-danger btn-sm">Delete</button>
+                </form>
+            }
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body">
+            <table class="table mb-0">
+                <tbody>
+                    <tr class="table-light">
+                        <th width="200">Custom ID</th>
+                        <td><code>@item.CustomId</code></td>
+                    </tr>
+                    <tr>
+                        <th>Created At</th>
+                        <td>@item.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                    </tr>
+                    <tr class="table-light">
+                        <th>Created By</th>
+                        <td>@(item.CreatedBy?.DisplayName ?? item.CreatedBy?.Email)</td>
+                    </tr>
+
+                    @foreach (var fv in item.FieldValues
+                                            .OrderBy(fv => fv.Field?.Order))
+                    {
+                        <tr>
+                            <th>@fv.Field?.Title</th>
+                            <td>
+                                @if (fv.Field?.FieldType == InventoryApp.Models.FieldType.TrueFalse)
+                                {
+                                    @(fv.Value == "true" ? "✅ Yes" : "❌ No")
+                                }
+                                else if (fv.Field?.FieldType == InventoryApp.Models.FieldType.DocumentLink
+                                         && !string.IsNullOrEmpty(fv.Value))
+                                {
+                                    <a href="@fv.Value" target="_blank">@fv.Value</a>
+                                }
+                                else
+                                {
+                                    @(fv.Value ?? "-")
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,111 @@
+﻿@model InventoryApp.Models.InventoryDetailsViewModel
+
+@{
+    ViewData["Title"] = Model.Inventory.Title;
+    var inv = Model.Inventory;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h2>@inv.Title</h2>
+            <p class="text-muted">
+                By @(inv.Owner?.DisplayName ?? inv.Owner?.Email) |
+                @inv.CreatedAt.ToString("dd MMM yyyy") |
+                @if (inv.IsPublic)
+                {
+                    <span class="badge bg-success">Public</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Private</span>
+                }
+            </p>
+
+            @if (!string.IsNullOrEmpty(inv.Description))
+            {
+                <p>@inv.Description</p>
+            }
+        </div>
+
+        @* শুধু Owner বা Admin দেখতে পাবে *@
+        @if (Model.IsOwner || Model.IsAdmin)
+        {
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@inv.Id"
+                   class="btn btn-outline-primary btn-sm">Edit Settings</a>
+
+                <a asp-controller="Field" asp-action="Index"
+                   asp-route-inventoryId="@inv.Id"
+                   class="btn btn-outline-secondary btn-sm">Manage Fields</a>
+
+                <form asp-action="Delete" asp-route-id="@inv.Id"
+                      method="post"
+                      onsubmit="return confirm('Delete this inventory?')">
+                    <button class="btn btn-outline-danger btn-sm">Delete</button>
+                </form>
+            </div>
+        }
+    </div>
+
+    <hr />
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Items (@inv.Items.Count)</h5>
+
+        @* Login করা এবং access আছে এমন user ই শুধু Add করতে পারবে *@
+        @if (Model.HasWriteAccess && User.Identity!.IsAuthenticated)
+        {
+            <a asp-controller="Item" asp-action="Create"
+               asp-route-inventoryId="@inv.Id"
+               class="btn btn-primary btn-sm">+ Add Item</a>
+        }
+    </div>
+
+    @if (!inv.Items.Any())
+    {
+        <div class="alert alert-info">No items yet.</div>
+    }
+    else
+    {
+        <div class="card shadow">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Custom ID</th>
+                            @foreach (var field in inv.Fields
+                                                            .Where(f => f.ShowInTable)
+                                                            .OrderBy(f => f.Order))
+                            {
+                                <th>@field.Title</th>
+                            }
+                            <th>Created</th>
+                            <th>By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in inv.Items
+                                                    .OrderByDescending(i => i.CreatedAt))
+                        {
+                            <tr style="cursor:pointer"
+                                onclick="location.href='@Url.Action("Details", "Item", new { id = item.Id })'">
+                                <td><code>@item.CustomId</code></td>
+                                @foreach (var field in inv.Fields
+                                                                    .Where(f => f.ShowInTable)
+                                                                    .OrderBy(f => f.Order))
+                                {
+                                    var val = item.FieldValues
+                                        .FirstOrDefault(v => v.FieldId == field.Id)?.Value;
+                                    <td>@(val ?? "-")</td>
+                                }
+                                <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                                <td>@(item.CreatedBy?.DisplayName ?? item.CreatedBy?.Email ?? "-")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

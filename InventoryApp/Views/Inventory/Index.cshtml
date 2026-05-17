@@ -1,0 +1,77 @@
+﻿@model List<InventoryApp.Models.Inventory>
+
+@{
+    ViewData["Title"] = "All Inventories";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>All Inventories</h2>
+        @if (User.Identity!.IsAuthenticated)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                + New Inventory
+            </a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No inventories yet. Be the first to create one!
+        </div>
+    }
+    else
+    {
+        <div class="card shadow">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Title</th>
+                            <th>Owner</th>
+                            <th>Items</th>
+                            <th>Access</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var inv in Model)
+                        {
+                            <tr style="cursor:pointer"
+                                onclick="location.href='@Url.Action("Details", new { id = inv.Id })'">
+                                <td>
+                                    <strong>@inv.Title</strong>
+                                    @if (!string.IsNullOrEmpty(inv.Description))
+                                    {
+                                        <br />
+                                        <small class="text-muted">
+                                            @(inv.Description.Length > 60
+                                                ? inv.Description[..60] + "..."
+                                                : inv.Description)
+                                        </small>
+                                    }
+                                </td>
+                                <td>@(inv.Owner?.DisplayName ?? inv.Owner?.Email ?? "Unknown")</td>
+                                <td>
+                                    <span class="badge bg-primary">@inv.Items.Count</span>
+                                </td>
+                                <td>
+                                    @if (inv.IsPublic)
+                                    {
+                                        <span class="badge bg-success">Public</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Private</span>
+                                    }
+                                </td>
+                                <td>@inv.CreatedAt.ToString("dd MMM yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

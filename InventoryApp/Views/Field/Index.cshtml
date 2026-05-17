@@ -1,0 +1,135 @@
+﻿@model List<InventoryApp.Models.InventoryField>
+
+@{
+    var inventory = ViewBag.Inventory as InventoryApp.Models.Inventory;
+    ViewData["Title"] = "Manage Fields";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3>Fields for: <strong>@inventory!.Title</strong></h3>
+            <p class="text-muted">Define custom fields for items in this inventory.</p>
+        </div>
+        <a asp-controller="Inventory" asp-action="Details"
+           asp-route-id="@inventory.Id"
+           class="btn btn-outline-secondary btn-sm">← Back to Inventory</a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @* Add New Field Form *@
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <strong>Add New Field</strong>
+        </div>
+        <div class="card-body">
+            <form asp-action="Add" method="post">
+                <input type="hidden" name="inventoryId" value="@inventory.Id" />
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Field Title *</label>
+                        <input type="text" name="title" class="form-control"
+                               placeholder="e.g. Model, Price, Notes..." required />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Field Type *</label>
+                        <select name="fieldType" class="form-select">
+                            <option value="0">Single-line Text</option>
+                            <option value="1">Multi-line Text</option>
+                            <option value="2">Numeric</option>
+                            <option value="3">Document/Image Link</option>
+                            <option value="4">True/False (Checkbox)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Description (tooltip)</label>
+                        <input type="text" name="description" class="form-control"
+                               placeholder="Optional hint for users" />
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" name="showInTable"
+                                       class="form-check-input" id="showCheck" value="true" checked />
+                                <label class="form-check-label" for="showCheck">
+                                    Show in table
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                + Add Field
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* Existing Fields *@
+    <div class="card shadow">
+        <div class="card-header">
+            <strong>Current Fields (@Model.Count / 15 max)</strong>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <div class="p-4 text-muted">No custom fields yet. Add one above!</div>
+            }
+            else
+            {
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order</th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Show in Table</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var field in Model)
+                        {
+                            <tr>
+                                <td>@field.Order</td>
+                                <td><strong>@field.Title</strong></td>
+                                <td>
+                                    <span class="badge bg-info text-dark">
+                                        @field.FieldType.ToString()
+                                    </span>
+                                </td>
+                                <td class="text-muted small">
+                                    @(field.Description ?? "-")
+                                </td>
+                                <td>
+                                    <form asp-action="ToggleShow" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@field.Id" />
+                                        <button class="btn btn-sm @(field.ShowInTable ? "btn-success" : "btn-outline-secondary")">
+                                            @(field.ShowInTable ? "✓ Visible" : "Hidden")
+                                        </button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form asp-action="Delete" method="post" class="d-inline"
+                                          onsubmit="return confirm('Delete this field? All values will be lost!')">
+                                        <input type="hidden" name="id" value="@field.Id" />
+                                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
