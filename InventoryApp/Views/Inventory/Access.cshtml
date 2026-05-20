@@ -1,0 +1,116 @@
+﻿@model InventoryApp.Models.Inventory
+
+@{
+    ViewData["Title"] = "Manage Access";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Access: <strong>@Model.Title</strong></h3>
+        <a asp-action="Details" asp-route-id="@Model.Id"
+           class="btn btn-outline-secondary btn-sm">← Back</a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @* Public Toggle *@
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">Public Access</h6>
+                    <small class="text-muted">
+                        Any logged-in user can add/edit items
+                    </small>
+                </div>
+                <form asp-controller="Inventory" asp-action="Edit" method="post">
+                    <input type="hidden" name="Id" value="@Model.Id" />
+                    <input type="hidden" name="Title" value="@Model.Title" />
+                    <input type="hidden" name="Description" value="@Model.Description" />
+                    <input type="hidden" name="Version" value="@Model.Version" />
+                    <input type="hidden" name="IsPublic"
+                           value="@(!Model.IsPublic)" />
+                    <button type="submit"
+                            class="btn btn-sm @(Model.IsPublic ? "btn-success" : "btn-outline-secondary")">
+                        @(Model.IsPublic ? "✓ Public" : "Private")
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @* Add User *@
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0">Add User Access</h6>
+        </div>
+        <div class="card-body">
+            <form asp-action="AddAccess" method="post">
+                <input type="hidden" name="inventoryId" value="@Model.Id" />
+                <div class="d-flex gap-2">
+                    <input type="email" name="email"
+                           class="form-control"
+                           placeholder="Enter user email..."
+                           id="userEmailInput" required />
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* User List *@
+    <div class="card shadow">
+        <div class="card-header">
+            <h6 class="mb-0">
+                Users with Access (@Model.AccessList.Count)
+            </h6>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.AccessList.Any())
+            {
+                <div class="p-4 text-muted">
+                    No specific users added yet.
+                </div>
+            }
+            else
+            {
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var access in Model.AccessList
+                                                    .OrderBy(a => a.User?.DisplayName))
+                        {
+                            <tr>
+                                <td>@(access.User?.DisplayName ?? "-")</td>
+                                <td>@access.User?.Email</td>
+                                <td>
+                                    <form asp-action="RemoveAccess" method="post"
+                                          class="d-inline">
+                                        <input type="hidden"
+                                               name="inventoryId"
+                                               value="@Model.Id" />
+                                        <input type="hidden"
+                                               name="userId"
+                                               value="@access.UserId" />
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

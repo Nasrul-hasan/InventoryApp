@@ -20,3 +20,103 @@ html {
 body {
   margin-bottom: 60px;
 }
+/* ─── Light Theme (default) ─────────────────────────── */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #212529;
+    --card-bg: #ffffff;
+    --navbar-bg: #ffffff;
+    --table-bg: #ffffff;
+    --border-color: #dee2e6;
+    --muted-color: #6c757d;
+}
+
+/* ─── Dark Theme ────────────────────────────────────── */
+[data-theme="dark"] {
+    --bg-color: #1a1a2e;
+    --text-color: #e0e0e0;
+    --card-bg: #16213e;
+    --navbar-bg: #0f3460;
+    --table-bg: #16213e;
+    --border-color: #444;
+    --muted-color: #aaa;
+}
+
+    [data-theme="dark"] body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+
+    [data-theme="dark"] .navbar {
+        background-color: var(--navbar-bg) !important;
+    }
+
+        [data-theme="dark"] .navbar a,
+        [data-theme="dark"] .navbar span,
+        [data-theme="dark"] .navbar button {
+            color: #e0e0e0 !important;
+        }
+
+    [data-theme="dark"] .card {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    [data-theme="dark"] .table {
+        color: var(--text-color);
+        background-color: var(--table-bg);
+        --bs-table-bg: var(--table-bg);
+        --bs-table-color: var(--text-color);
+        --bs-table-border-color: var(--border-color);
+    }
+
+    [data-theme="dark"] .table-hover > tbody > tr:hover {
+        background-color: #1e2a4a;
+        color: var(--text-color);
+    }
+
+    [data-theme="dark"] .table-dark {
+        --bs-table-bg: #0d1b2a;
+    }
+
+    [data-theme="dark"] .table-light {
+        --bs-table-bg: #1e2a4a;
+        color: var(--text-color);
+    }
+
+    [data-theme="dark"] .form-control,
+    [data-theme="dark"] .form-select {
+        background-color: #1e2a4a;
+        color: var(--text-color);
+        border-color: var(--border-color);
+    }
+
+        [data-theme="dark"] .form-control:focus,
+        [data-theme="dark"] .form-select:focus {
+            background-color: #1e2a4a;
+            color: var(--text-color);
+        }
+
+    [data-theme="dark"] .alert-info {
+        background-color: #1e2a4a;
+        color: #90caf9;
+        border-color: #444;
+    }
+
+    [data-theme="dark"] .text-muted {
+        color: var(--muted-color) !important;
+    }
+
+    [data-theme="dark"] .border-bottom {
+        border-color: var(--border-color) !important;
+    }
+
+    [data-theme="dark"] .bg-white {
+        background-color: var(--card-bg) !important;
+    }
+
+    [data-theme="dark"] .footer {
+        background-color: var(--navbar-bg);
+        color: var(--text-color);
+    }

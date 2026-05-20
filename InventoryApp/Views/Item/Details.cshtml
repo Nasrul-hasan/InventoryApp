@@ -36,7 +36,7 @@
                 <span class="btn btn-sm btn-outline-danger disabled">♥ @Model.LikeCount</span>
             }
 
-            @if (Model.HasWriteAccess)
+            @if (Model.HasWriteAccess && User.Identity!.IsAuthenticated)
             {
                 <a asp-action="Edit" asp-route-id="@item.Id"
                    class="btn btn-outline-primary btn-sm">Edit</a>

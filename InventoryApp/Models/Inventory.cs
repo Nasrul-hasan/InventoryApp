@@ -19,5 +19,8 @@
         public ICollection<InventoryAccess> AccessList { get; set; } = new List<InventoryAccess>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public ICollection<InventoryTag> InventoryTags { get; set; } = new List<InventoryTag>();
+
+        public string? ImageUrl { get; set; }
+        public string? Category { get; set; }
     }
 }

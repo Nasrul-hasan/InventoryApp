@@ -9,7 +9,10 @@
         <div class="card shadow">
             <div class="card-body p-4">
                 <h3 class="card-title text-center mb-4">Login</h3>
-
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger">@TempData["Error"]</div>
+                }
                 <form asp-action="Login" method="post">
                     <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
@@ -32,6 +35,24 @@
 
                     <button type="submit" class="btn btn-primary w-100">Login</button>
                 </form>
+                <hr />
+                <h6 class="text-center text-muted mb-3">Or login with</h6>
+
+                <div class="d-flex gap-2 justify-content-center">
+                    <form asp-action="ExternalLogin" method="post">
+                        <input type="hidden" name="provider" value="Google" />
+                        <button type="submit" class="btn btn-outline-danger">
+                            🔴 Google
+                        </button>
+                    </form>
+
+                    <form asp-action="ExternalLogin" method="post">
+                        <input type="hidden" name="provider" value="Facebook" />
+                        <button type="submit" class="btn btn-outline-primary">
+                            🔵 Facebook
+                        </button>
+                    </form>
+                </div>
 
                 <hr />
                 <p class="text-center mb-0">

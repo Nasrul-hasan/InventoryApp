@@ -1,0 +1,110 @@
+﻿@model InventoryApp.Models.SearchResultViewModel
+
+@{
+    ViewData["Title"] = $"Search: {Model.Query}";
+}
+
+<div class="container mt-4">
+    <h3>
+        Search Results for: <strong>"@Model.Query"</strong>
+        <span class="badge bg-secondary ms-2">@Model.TotalResults results</span>
+    </h3>
+
+    <hr />
+
+    @* ─── Inventories ────────────────────────────────── *@
+    @if (Model.Inventories.Any())
+    {
+        <h5 class="mt-4">📦 Inventories (@Model.Inventories.Count)</h5>
+        <div class="card shadow mb-4">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Title</th>
+                            <th>Owner</th>
+                            <th>Items</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var inv in Model.Inventories)
+                        {
+                            <tr style="cursor:pointer"
+                                onclick="location.href='@Url.Action("Details", "Inventory", new { id = inv.Id })'">
+                                <td>
+                                    <strong>@inv.Title</strong>
+                                    @if (!string.IsNullOrEmpty(inv.Description))
+                                    {
+                                        <br />
+                                        <small class="text-muted">
+                                            @(inv.Description.Length > 80
+                                                ? inv.Description[..80] + "..."
+                                                : inv.Description)
+                                        </small>
+                                    }
+                                </td>
+                                <td>@(inv.Owner?.DisplayName ?? inv.Owner?.Email)</td>
+                                <td>
+                                    <span class="badge bg-primary">@inv.Items.Count</span>
+                                </td>
+                                <td>@inv.CreatedAt.ToString("dd MMM yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @* ─── Items ──────────────────────────────────────── *@
+    @if (Model.Items.Any())
+    {
+        <h5 class="mt-4">🔖 Items (@Model.Items.Count)</h5>
+        <div class="card shadow mb-4">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Custom ID</th>
+                            <th>Inventory</th>
+                            <th>Matched Values</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr style="cursor:pointer"
+                                onclick="location.href='@Url.Action("Details", "Item", new { id = item.Id })'">
+                                <td><code>@item.CustomId</code></td>
+                                <td>@item.Inventory?.Title</td>
+                                <td>
+                                    @foreach (var fv in item.FieldValues
+                                                                            .Where(fv => fv.Value != null &&
+                                                                                         fv.Value.Contains(Model.Query))
+                                                                            .Take(3))
+                                    {
+                                        <span class="badge bg-info text-dark me-1">
+                                            @fv.Field?.Title: @fv.Value
+                                        </span>
+                                    }
+                                </td>
+                                <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @* ─── No Results ──────────────────────────────────── *@
+    @if (!Model.Inventories.Any() && !Model.Items.Any() && !string.IsNullOrEmpty(Model.Query))
+    {
+        <div class="alert alert-warning mt-4">
+            No results found for "<strong>@Model.Query</strong>".
+            Try different keywords.
+        </div>
+    }
+</div>

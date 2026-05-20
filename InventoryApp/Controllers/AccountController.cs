@@ -1,6 +1,7 @@
 ﻿using InventoryApp.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace InventoryApp.Controllers
 {
@@ -85,6 +86,77 @@ namespace InventoryApp.Controllers
 
             ModelState.AddModelError("", "Invalid email or password.");
             return View(model);
+        }
+        // ─── External Login (Google/Facebook) ───────────────
+        [HttpPost]
+        public IActionResult ExternalLogin(string provider, string? returnUrl = null)
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Account",
+                new { returnUrl });
+            var properties = _signInManager
+                .ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
+
+        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null)
+        {
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+                return RedirectToAction("Login");
+
+            // Already has account?
+            var result = await _signInManager
+                .ExternalLoginSignInAsync(info.LoginProvider,
+                                          info.ProviderKey,
+                                          isPersistent: false);
+
+            if (result.Succeeded)
+            {
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    return Redirect(returnUrl);
+                return RedirectToAction("Index", "Home");
+            }
+
+            var email = info.Principal.FindFirstValue(
+                System.Security.Claims.ClaimTypes.Email) ??
+                info.Principal.FindFirstValue("email") ?? "";
+            var name = info.Principal.FindFirstValue(
+                System.Security.Claims.ClaimTypes.Name) ?? "FacebookUser";
+
+            // Email না পেলে fake email বানাও
+            if (string.IsNullOrEmpty(email))
+            {
+                email = $"{info.ProviderKey}@facebook.com";
+            }
+            // Email দিয়ে existing user খোঁজো
+            var existingUser = await _userManager.FindByEmailAsync(email);
+            if (existingUser != null)
+            {
+                // Existing account এ Facebook link করো
+                await _userManager.AddLoginAsync(existingUser, info);
+                await _signInManager.SignInAsync(existingUser, isPersistent: false);
+                return RedirectToAction("Index", "Home");
+            }
+            var user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                DisplayName = name,
+                EmailConfirmed = true
+            };
+
+            var createResult = await _userManager.CreateAsync(user);
+            if (createResult.Succeeded)
+            {
+                await _userManager.AddLoginAsync(user, info);
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Error হলে Login page এ যাও
+            var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+            TempData["Error"] = $"User তৈরি হয়নি: {errors}";
+            return RedirectToAction("Login");
         }
 
         // ─── LOGOUT ─────────────────────────────────────────

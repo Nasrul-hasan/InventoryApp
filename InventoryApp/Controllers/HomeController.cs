@@ -1,32 +1,58 @@
+using InventoryApp.Data;
 using InventoryApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 
 namespace InventoryApp.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ApplicationDbContext context)
         {
-            _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            // Latest 10 inventories
+            var latest = await _context.Inventories
+                .Include(i => i.Owner)
+                .Include(i => i.Items)
+                .OrderByDescending(i => i.CreatedAt)
+                .Take(10)
+                .ToListAsync();
+
+            // Top 5 most popular (most items)
+            var top = await _context.Inventories
+                .Include(i => i.Owner)
+                .Include(i => i.Items)
+                .OrderByDescending(i => i.Items.Count)
+                .Take(5)
+                .ToListAsync();
+
+            // All tags
+            var tags = await _context.Tags
+                .Include(t => t.InventoryTags)
+                .Where(t => t.InventoryTags.Any())
+                .OrderByDescending(t => t.InventoryTags.Count)
+                .Take(30)
+                .ToListAsync();
+
+            var vm = new HomeViewModel
+            {
+                LatestInventories = latest,
+                TopInventories = top,
+                PopularTags = tags
+            };
+
+            return View(vm);
         }
 
         public IActionResult Privacy()
         {
             return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

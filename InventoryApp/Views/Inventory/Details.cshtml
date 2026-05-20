@@ -21,24 +21,22 @@
                     <span class="badge bg-secondary">Private</span>
                 }
             </p>
-
             @if (!string.IsNullOrEmpty(inv.Description))
             {
-                <p>@inv.Description</p>
+                <div id="inventoryDescription">@inv.Description</div>
             }
         </div>
 
-        @* শুধু Owner বা Admin দেখতে পাবে *@
         @if (Model.IsOwner || Model.IsAdmin)
         {
             <div class="d-flex gap-2">
                 <a asp-action="Edit" asp-route-id="@inv.Id"
                    class="btn btn-outline-primary btn-sm">Edit Settings</a>
-
                 <a asp-controller="Field" asp-action="Index"
                    asp-route-inventoryId="@inv.Id"
                    class="btn btn-outline-secondary btn-sm">Manage Fields</a>
-
+                <a asp-action="Access" asp-route-id="@inv.Id"
+                   class="btn btn-outline-info btn-sm">Manage Access</a>
                 <form asp-action="Delete" asp-route-id="@inv.Id"
                       method="post"
                       onsubmit="return confirm('Delete this inventory?')">
@@ -48,64 +46,174 @@
         }
     </div>
 
-    <hr />
+    <ul class="nav nav-tabs mb-3" id="inventoryTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="items-tab"
+                    data-bs-toggle="tab" data-bs-target="#items"
+                    type="button" role="tab">
+                📦 Items (@inv.Items.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="discussion-tab"
+                    data-bs-toggle="tab" data-bs-target="#discussion"
+                    type="button" role="tab">
+                💬 Discussion (@inv.Comments.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link"
+                   href="/Inventory/Stats/@inv.Id">
+                📊 Stats
+            </a>
+        </li>
+    </ul>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5>Items (@inv.Items.Count)</h5>
+    <div class="tab-content">
 
-        @* Login করা এবং access আছে এমন user ই শুধু Add করতে পারবে *@
-        @if (Model.HasWriteAccess && User.Identity!.IsAuthenticated)
-        {
-            <a asp-controller="Item" asp-action="Create"
-               asp-route-inventoryId="@inv.Id"
-               class="btn btn-primary btn-sm">+ Add Item</a>
-        }
-    </div>
+        <div class="tab-pane fade show active" id="items">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>Items (@inv.Items.Count)</h5>
+                @if (Model.HasWriteAccess && User.Identity!.IsAuthenticated)
+                {
+                    <a href="/Item/Create?inventoryId=@inv.Id"
+                       class="btn btn-primary btn-sm">+ Add Item</a>
+                }
+            </div>
 
-    @if (!inv.Items.Any())
-    {
-        <div class="alert alert-info">No items yet.</div>
-    }
-    else
-    {
-        <div class="card shadow">
-            <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Custom ID</th>
-                            @foreach (var field in inv.Fields
-                                                            .Where(f => f.ShowInTable)
-                                                            .OrderBy(f => f.Order))
-                            {
-                                <th>@field.Title</th>
-                            }
-                            <th>Created</th>
-                            <th>By</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in inv.Items
-                                                    .OrderByDescending(i => i.CreatedAt))
-                        {
-                            <tr style="cursor:pointer"
-                                onclick="location.href='@Url.Action("Details", "Item", new { id = item.Id })'">
-                                <td><code>@item.CustomId</code></td>
-                                @foreach (var field in inv.Fields
-                                                                    .Where(f => f.ShowInTable)
-                                                                    .OrderBy(f => f.Order))
+            @if (!inv.Items.Any())
+            {
+                <div class="alert alert-info">No items yet.</div>
+            }
+            else
+            {
+                <div class="card shadow">
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Custom ID</th>
+                                    @foreach (var field in inv.Fields
+                                                                            .Where(f => f.ShowInTable)
+                                                                            .OrderBy(f => f.Order))
+                                    {
+                                        <th>@field.Title</th>
+                                    }
+                                    <th>Created</th>
+                                    <th>By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in inv.Items
+                                                                    .OrderByDescending(i => i.CreatedAt))
                                 {
-                                    var val = item.FieldValues
-                                        .FirstOrDefault(v => v.FieldId == field.Id)?.Value;
-                                    <td>@(val ?? "-")</td>
+                                    <tr style="cursor:pointer"
+                                        onclick="location.href='@Url.Action("Details", "Item", new { id = item.Id })'">
+                                        <td><code>@item.CustomId</code></td>
+                                        @foreach (var field in inv.Fields
+                                                                                    .Where(f => f.ShowInTable)
+                                                                                    .OrderBy(f => f.Order))
+                                        {
+                                            var val = item.FieldValues
+                                                .FirstOrDefault(v => v.FieldId == field.Id)?.Value;
+                                            <td>@(val ?? "-")</td>
+                                        }
+                                        <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                                        <td>@(item.CreatedBy?.DisplayName ?? item.CreatedBy?.Email ?? "-")</td>
+                                    </tr>
                                 }
-                                <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
-                                <td>@(item.CreatedBy?.DisplayName ?? item.CreatedBy?.Email ?? "-")</td>
-                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="tab-pane fade" id="discussion">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div id="commentList" style="max-height:400px; overflow-y:auto;">
+                        @foreach (var comment in inv.Comments.OrderBy(c => c.CreatedAt))
+                        {
+                            <div class="mb-3 pb-3 border-bottom">
+                                <div class="d-flex justify-content-between">
+                                    <a asp-controller="User" asp-action="Public"
+                                           asp-route-id="@comment.User?.Id"
+                                           class="text-decoration-none text-dark fw-bold">
+                                        @(comment.User?.DisplayName ?? comment.User?.Email)
+                                    </a>
+                                    <small class="text-muted">
+                                        @comment.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                    </small>
+                                </div>
+                                <p class="mb-0 mt-1">@comment.Content</p>
+                            </div>
                         }
-                    </tbody>
-                </table>
+                    </div>
+
+                    @if (User.Identity!.IsAuthenticated)
+                    {
+                        <form action="/Comment/Add#discussion" method="post" class="mt-3">
+                            <input type="hidden" name="inventoryId" value="@inv.Id" />
+                            <div class="mb-2">
+                                <textarea name="content" class="form-control" rows="2"
+                                          placeholder="Write a comment..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                Post Comment
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mt-3">
+                            <a asp-controller="Account" asp-action="Login">Login</a>
+                            to join the discussion.
+                        </div>
+                    }
+                </div>
             </div>
         </div>
-    }
+
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        const inventoryId = "@inv.Id";
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/commentHub")
+            .build();
+                // Page load এ যদি #discussion hash থাকে তাহলে Discussion tab active করো
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.location.hash === '#discussion') {
+                var discussionTab = document.getElementById('discussion-tab');
+                if (discussionTab) {
+                    discussionTab.click();
+                }
+            }
+        });
+        connection.on("ReceiveComment", function (data) {
+            const list = document.getElementById("commentList");
+            const div = document.createElement("div");
+            div.className = "mb-3 pb-3 border-bottom";
+            div.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <strong>${data.userName}</strong>
+                    <small class="text-muted">${data.createdAt}</small>
+                </div>
+                <p class="mb-0 mt-1">${data.content}</p>
+            `;
+            list.appendChild(div);
+            list.scrollTop = list.scrollHeight;
+        });
+                // Markdown render করলাম
+        const descEl = document.getElementById('inventoryDescription');
+        if (descEl) {
+            descEl.innerHTML = marked.parse(descEl.innerText);
+        }
+        connection.start()
+            .then(() => connection.invoke("JoinInventory", inventoryId))
+            .catch(err => console.error(err));
+    </script>
+}

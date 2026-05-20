@@ -1,0 +1,122 @@
+﻿@model InventoryApp.Models.InventoryStatsViewModel
+
+@{
+    ViewData["Title"] = "Statistics";
+    var invId = ViewBag.InventoryId;
+    var invTitle = ViewBag.InventoryTitle;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>📊 Statistics: <strong>@invTitle</strong></h3>
+        <a href="/Inventory/Details/@invId"
+           class="btn btn-outline-secondary btn-sm">← Back</a>
+    </div>
+
+    @* ─── Summary Cards ──────────────────────────────── *@
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow text-center">
+                <div class="card-body">
+                    <h1 class="display-4 text-primary fw-bold">
+                        @Model.TotalItems
+                    </h1>
+                    <p class="text-muted mb-0">Total Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow text-center">
+                <div class="card-body">
+                    <h1 class="display-4 text-danger fw-bold">
+                        @Model.TotalLikes
+                    </h1>
+                    <p class="text-muted mb-0">Total Likes ♥</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ─── Field Stats ────────────────────────────────── *@
+    @if (Model.FieldStats.Any())
+    {
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Field Statistics</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var stat in Model.FieldStats)
+                        {
+                            <tr>
+                                <td><strong>@stat.FieldTitle</strong></td>
+                                <td>
+                                    <span class="badge bg-info text-dark">
+                                        @stat.FieldType
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (stat.FieldType == InventoryApp.Models.FieldType.Numeric)
+                                    {
+                                        if (stat.Average.HasValue)
+                                        {
+                                            <span class="me-3">
+                                                avg: <strong>@stat.Average</strong>
+                                            </span>
+                                            <span class="me-3 text-success">
+                                                min: <strong>@stat.Min</strong>
+                                            </span>
+                                            <span class="text-danger">
+                                                max: <strong>@stat.Max</strong>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No data</span>
+                                        }
+                                    }
+                                    else if (stat.FieldType == InventoryApp.Models.FieldType.SingleLineText ||
+                                             stat.FieldType == InventoryApp.Models.FieldType.MultiLineText)
+                                    {
+                                        if (!string.IsNullOrEmpty(stat.MostUsedValue))
+                                        {
+                                            <span>
+                                                Most used:
+                                                <strong>"@stat.MostUsedValue"</strong>
+                                                <span class="badge bg-secondary ms-1">
+                                                    @stat.MostUsedCount times
+                                                </span>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No data</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            No custom fields defined for this inventory yet.
+        </div>
+    }
+</div>

@@ -23,8 +23,45 @@
 
                         <div class="mb-3">
                             <label asp-for="Description" class="form-label fw-bold"></label>
-                            <textarea asp-for="Description" class="form-control" rows="3"
-                                      placeholder="Describe what this inventory tracks..."></textarea>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Category" class="form-label fw-bold"></label>
+                            <select asp-for="Category" class="form-select">
+                                <option value="">-- Select Category --</option>
+                                <option value="Equipment">Equipment</option>
+                                <option value="Furniture">Furniture</option>
+                                <option value="Book">Book</option>
+                                <option value="Document">Document</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Tags" class="form-label fw-bold">
+                                Tags
+                                <small class="text-muted fw-normal">
+                                    (comma separated, e.g. books, library, fiction)
+                                </small>
+                            </label>
+                            @* সার্চ করলে যে অটো সাজেশন আসবে তা এখানে দেখানো হবে। ইউজার ট্যাগ লিখতে থাকলে সেই অনুযায়ী সাজেশন আসবে। ইউজার সাজেশন থেকে ট্যাগ সিলেক্ট করতে পারবে অথবা নতুন ট্যাগ লিখে এন্টার প্রেস করেও ট্যাগ অ্যাড করতে পারবে। *@
+                            <input asp-for="Tags" class="form-control"
+                                   id="tagsInput"
+                                   placeholder="books, library, fiction..."
+                                   autocomplete="off" />
+                            <div id="tagSuggestions"
+                                 class="list-group position-absolute"
+                                 style="z-index:1000; display:none; max-width:400px;"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ImageUrl" class="form-label fw-bold">
+                                Image URL
+                                <small class="text-muted fw-normal">(optional)</small>
+                            </label>
+                            <input asp-for="ImageUrl" class="form-control"
+                                   placeholder="https://..." />
                         </div>
 
                         <div class="mb-4 form-check">
@@ -44,3 +81,51 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    <script>
+        const tagsInput = document.getElementById('tagsInput');
+        const suggestions = document.getElementById('tagSuggestions');
+
+        tagsInput.addEventListener('input', async function () {
+            const val = this.value;
+            const lastTag = val.split(',').pop().trim();
+
+            if (lastTag.length < 1) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            const res = await fetch(`/Search/Tags?q=${lastTag}`);
+            const tags = await res.json();
+
+            if (tags.length === 0) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            suggestions.innerHTML = '';
+            tags.forEach(tag => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action';
+                item.textContent = tag;
+                item.onclick = function () {
+                    const parts = tagsInput.value.split(',');
+                    parts[parts.length - 1] = ' ' + tag;
+                    tagsInput.value = parts.join(',') + ', ';
+                    suggestions.style.display = 'none';
+                    tagsInput.focus();
+                };
+                suggestions.appendChild(item);
+            });
+
+            suggestions.style.display = 'block';
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target !== tagsInput) {
+                suggestions.style.display = 'none';
+            }
+        });
+    </script>
+}

@@ -20,8 +20,37 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// Google + Facebook OAuth
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    })
+    .AddFacebook(options =>
+    {
+        options.AppId = builder.Configuration["Authentication:Facebook:AppId"]!;
+        options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"]!;
+        options.Scope.Add("email");
+        options.Scope.Add("public_profile");
+        options.Fields.Add("email");
+        options.Fields.Add("name");
+    });
+
+// Localization
+builder.Services.AddLocalization(options =>
+    options.ResourcesPath = "Resources");
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "en", "bn" };
+    options.SetDefaultCulture("en")
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+});
 // MVC register করো
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 // Admin role এবং প্রথম user setup
@@ -53,11 +82,20 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+// Language middleware
+app.Use(async (context, next) =>
+{
+    var lang = context.Request.Cookies["language"] ?? "en";
+    var culture = new System.Globalization.CultureInfo(lang);
+    System.Globalization.CultureInfo.CurrentCulture = culture;
+    System.Globalization.CultureInfo.CurrentUICulture = culture;
+    await next();
+});
 app.UseRouting();
 
 app.UseAuthentication(); // ← এটা অবশ্যই UseAuthorization এর আগে
 app.UseAuthorization();
-
+app.MapHub<InventoryApp.Hubs.CommentHub>("/commentHub");
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

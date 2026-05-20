@@ -1,80 +1,176 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@{
+    var theme = Context.Request.Cookies["theme"] ?? "light";
+    var lang = Context.Request.Cookies["language"] ?? "en";
+}
+<!DOCTYPE html>
+<html lang="@lang">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - InventoryApp</title>
-
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/InventoryApp.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body data-theme="@theme">
 
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
 
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">InventoryApp</a>
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                    📦 InventoryApp
+                </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                <button class="navbar-toggler" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target=".navbar-collapse">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 
-                    <!-- Left Menu -->
+                    @* Left Menu *@
                     <ul class="navbar-nav flex-grow-1">
-
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark"
+                                   asp-controller="Home" asp-action="Index">
+                                @(lang == "bn" ? "হোম" : "Home")
+                            </a>
                         </li>
-
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark"
+                                   asp-controller="Inventory" asp-action="Index">
+                                @(lang == "bn" ? "ইনভেন্টরি" : "Inventories")
+                            </a>
                         </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Inventory" asp-action="Index">Inventories</a>
-                        </li>
-
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-warning" asp-controller="Admin" asp-action="Index">
-                                    Admin Panel
+                                <a class="nav-link text-warning"
+                                       asp-controller="Admin" asp-action="Index">
+                                    @(lang == "bn" ? "অ্যাডমিন" : "Admin Panel")
                                 </a>
                             </li>
                         }
-
                     </ul>
 
-                    <!-- Right Menu -->
-                    <ul class="navbar-nav ms-auto">
+                    @* Search Box *@
+                    <form asp-controller="Search" asp-action="Index"
+                          method="get" class="d-flex mx-3">
+                        <input type="text" name="q"
+                               class="form-control form-control-sm me-2"
+                               placeholder="@(lang == "bn" ? "খুঁজুন..." : "Search inventories & items...")"
+                               value="@Context.Request.Query["q"]"
+                               style="min-width: 220px;" />
+                        <button type="submit"
+                                class="btn btn-outline-primary btn-sm">
+                            🔍
+                        </button>
+                    </form>
+
+                    @* Right Menu *@
+                    <ul class="navbar-nav">
+
+                        @* Theme Toggle *@
+                        <li class="nav-item">
+                            @if (theme == "dark")
+                            {
+                                <form asp-controller="Preference"
+                                      asp-action="SetTheme" method="post">
+                                    <input type="hidden" name="theme" value="light" />
+                                    <input type="hidden" name="returnUrl"
+                                           value="@Context.Request.Path" />
+                                    <button type="submit"
+                                            class="btn btn-link nav-link">
+                                        ☀️
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-controller="Preference"
+                                      asp-action="SetTheme" method="post">
+                                    <input type="hidden" name="theme" value="dark" />
+                                    <input type="hidden" name="returnUrl"
+                                           value="@Context.Request.Path" />
+                                    <button type="submit"
+                                            class="btn btn-link nav-link">
+                                        🌙
+                                    </button>
+                                </form>
+                            }
+                        </li>
+
+                        @* Language Toggle *@
+                        <li class="nav-item">
+                            @if (lang == "bn")
+                            {
+                                <form asp-controller="Preference"
+                                      asp-action="SetLanguage" method="post">
+                                    <input type="hidden" name="language" value="en" />
+                                    <input type="hidden" name="returnUrl"
+                                           value="@Context.Request.Path" />
+                                    <button type="submit"
+                                            class="btn btn-link nav-link">
+                                        🇬🇧 EN
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-controller="Preference"
+                                      asp-action="SetLanguage" method="post">
+                                    <input type="hidden" name="language" value="bn" />
+                                    <input type="hidden" name="returnUrl"
+                                           value="@Context.Request.Path" />
+                                    <button type="submit"
+                                            class="btn btn-link nav-link">
+                                        🇧🇩 BN
+                                    </button>
+                                </form>
+                            }
+                        </li>
 
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <span class="nav-link">Hello, @User.Identity.Name!</span>
+                                <span class="nav-link">
+                                    @(lang == "bn" ? "স্বাগতম" : "Hello"),
+                                    @User.Identity.Name!
+                                </span>
                             </li>
-
                             <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Logout" method="post">
-                                    <button type="submit" class="btn btn-link nav-link">Logout</button>
+                                <a class="nav-link"
+                                       asp-controller="User" asp-action="Profile">
+                                    @(lang == "bn" ? "প্রোফাইল" : "My Profile")
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Account"
+                                      asp-action="Logout" method="post">
+                                    <button type="submit"
+                                            class="btn btn-link nav-link">
+                                        @(lang == "bn" ? "লগআউট" : "Logout")
+                                    </button>
                                 </form>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
+                                <a class="nav-link"
+                                       asp-controller="Account" asp-action="Login">
+                                    @(lang == "bn" ? "লগইন" : "Login")
+                                </a>
                             </li>
-
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="Register">Register</a>
+                                <a class="nav-link"
+                                       asp-controller="Account" asp-action="Register">
+                                    @(lang == "bn" ? "নিবন্ধন" : "Register")
+                                </a>
                             </li>
                         }
-
                     </ul>
 
                 </div>
@@ -98,6 +194,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 
