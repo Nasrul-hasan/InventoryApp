@@ -6,8 +6,21 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // DbContext register করো
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// DbContext register করো
+// DbContext register করো
+var builderStr = new Npgsql.NpgsqlConnectionStringBuilder();
+builderStr.Host = builder.Configuration["Supabase:Host"];
+builderStr.Port = int.Parse(builder.Configuration["Supabase:Port"] ?? "5432");
+builderStr.Database = builder.Configuration["Supabase:Database"];
+builderStr.Username = builder.Configuration["Supabase:Username"];
+builderStr.Password = builder.Configuration["Supabase:Password"];
+
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builderStr.ConnectionString));
 
 // Identity register করো
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

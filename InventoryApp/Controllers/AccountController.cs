@@ -123,7 +123,7 @@ namespace InventoryApp.Controllers
             var name = info.Principal.FindFirstValue(
                 System.Security.Claims.ClaimTypes.Name) ?? "FacebookUser";
 
-            // Email না পেলে fake email বানাও
+            // Email fake email ( ifFacebook doesn't provide email ) দিয়ে user তৈরি করো 
             if (string.IsNullOrEmpty(email))
             {
                 email = $"{info.ProviderKey}@facebook.com";
