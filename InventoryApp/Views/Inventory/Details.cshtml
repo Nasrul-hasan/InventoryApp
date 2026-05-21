@@ -8,7 +8,22 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-start mb-3">
         <div>
-            <h2>@inv.Title</h2>
+            @* auto save এর জন্য title কে contenteditable করে দিলাম, এবং একটা badge যোগ করলাম যা save status দেখাবে *@
+            <h2>
+                @if (Model.IsOwner || Model.IsAdmin)
+                {
+                    <span contenteditable="true"
+                          data-autosave="title"
+                          class="border-0 bg-transparent">@inv.Title</span>
+                    <span id="autoSaveStatus" class="badge bg-secondary ms-2 small">
+                        Saved
+                    </span>
+                }
+                else
+                {
+                    @inv.Title
+                }
+            </h2>
             <p class="text-muted">
                 By @(inv.Owner?.DisplayName ?? inv.Owner?.Email) |
                 @inv.CreatedAt.ToString("dd MMM yyyy") |
@@ -215,5 +230,51 @@
         connection.start()
             .then(() => connection.invoke("JoinInventory", inventoryId))
             .catch(err => console.error(err));
+
+        // implelemt auto save every 8 seconds if user is owner or admin
+        let autoSaveTimer = null;
+        let lastSavedVersion = @inv.Version;
+
+        @if (Model.IsOwner || Model.IsAdmin)
+        {
+                <text>
+                    function autoSave() {
+                        const title = document.querySelector('[data-autosave="title"]');
+                        const desc = document.querySelector('[data-autosave="desc"]');
+                        if (!title) return;
+
+                        fetch('/Inventory/AutoSave', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                id: @inv.Id,
+                                title: title.innerText,
+                                description: desc ? desc.innerText : '',
+                                version: lastSavedVersion
+                            })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                lastSavedVersion = data.version;
+                                document.getElementById('autoSaveStatus').textContent = 'All changes saved';
+                                document.getElementById('autoSaveStatus').className = 'badge bg-success ms-2';
+                            } else {
+                                document.getElementById('autoSaveStatus').textContent = 'Save conflict!';
+                                document.getElementById('autoSaveStatus').className = 'badge bg-danger ms-2';
+                            }
+                        });
+                    }
+
+                    document.querySelectorAll('[data-autosave]').forEach(el => {
+                        el.addEventListener('input', () => {
+                            document.getElementById('autoSaveStatus').textContent = 'Unsaved changes...';
+                            document.getElementById('autoSaveStatus').className = 'badge bg-warning ms-2';
+                            clearTimeout(autoSaveTimer);
+                            autoSaveTimer = setTimeout(autoSave, 8000);
+                        });
+                    });
+                </text>
+        }
     </script>
 }

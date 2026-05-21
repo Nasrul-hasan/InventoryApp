@@ -64,4 +64,12 @@ namespace InventoryApp.Models
         public string? MostUsedValue { get; set; }
         public int MostUsedCount { get; set; }
     }
+    // AutoSaveViewModel is used to store the auto-saved data for an inventory when a user is editing it.
+    public class AutoSaveViewModel
+    {
+        public int Id { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public int Version { get; set; }
+    }
 }

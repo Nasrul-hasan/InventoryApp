@@ -389,6 +389,36 @@ namespace InventoryApp.Controllers
             ViewBag.InventoryTitle = inventory.Title;
             return View(stats);
         }
+
+        // ─── AutoSave API ───────────────────────────────────── (for Edit page)
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> AutoSave([FromBody] AutoSaveViewModel model)
+        {
+            var inventory = await _context.Inventories
+                .FirstOrDefaultAsync(i => i.Id == model.Id);
+
+            if (inventory == null)
+                return Json(new { success = false });
+
+            var user = await _userManager.GetUserAsync(User);
+            var isAdmin = User.IsInRole("Admin");
+            var isOwner = user?.Id == inventory.OwnerId;
+
+            if (!isOwner && !isAdmin)
+                return Json(new { success = false });
+
+            if (inventory.Version != model.Version)
+                return Json(new { success = false, conflict = true });
+
+            inventory.Title = model.Title ?? inventory.Title;
+            inventory.Description = model.Description;
+            inventory.Version += 1;
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, version = inventory.Version });
+        }
         // ─── HandleTags Helper ───────────────────────────────
         private async Task HandleTags(int inventoryId, string? tagsString)
         {
