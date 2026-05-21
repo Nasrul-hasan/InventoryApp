@@ -2,6 +2,7 @@ using InventoryApp.Data;
 using InventoryApp.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,15 +11,26 @@ var builder = WebApplication.CreateBuilder(args);
 //    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 // DbContext register করো
 // DbContext register করো
-var builderStr = new Npgsql.NpgsqlConnectionStringBuilder();
-builderStr.Host = builder.Configuration["Supabase:Host"];
-builderStr.Port = int.Parse(builder.Configuration["Supabase:Port"] ?? "5432");
-builderStr.Database = builder.Configuration["Supabase:Database"];
-builderStr.Username = builder.Configuration["Supabase:Username"];
-builderStr.Password = builder.Configuration["Supabase:Password"];
+var builderStr = new NpgsqlConnectionStringBuilder();
 
+// রেন্ডার (ডাবল আন্ডারস্কোর) এবং লোকাল (কোলন) দুই ফরম্যাটই যেন সাপোর্ট করে তার নিখুঁত ব্যবস্থা
+builderStr.Host = builder.Configuration["Supabase:Host"] ?? builder.Configuration["Supabase__Host"];
+builderStr.Database = builder.Configuration["Supabase:Database"] ?? builder.Configuration["Supabase__Database"];
+builderStr.Username = builder.Configuration["Supabase:Username"] ?? builder.Configuration["Supabase__Username"];
+builderStr.Password = builder.Configuration["Supabase:Password"] ?? builder.Configuration["Supabase__Password"];
+
+// পোর্টের খালি স্ট্রিং জনিত ক্র্যাশ দূর করার জন্য নিরাপদ পার্সিং
+var portStr = builder.Configuration["Supabase:Port"] ?? builder.Configuration["Supabase__Port"];
+if (string.IsNullOrWhiteSpace(portStr))
+{
+    portStr = "5432"; // ডিফল্ট পোর্ট
+}
+builderStr.Port = int.Parse(portStr);
+
+// রেন্ডার পোর্ট ও ডিবি কন্টেক্সট রেজিস্ট্রেসশন
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builderStr.ConnectionString));
 
