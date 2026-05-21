@@ -78,6 +78,18 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
 var app = builder.Build();
+
+// প্রক্সি হেডার হ্যান্ডেল করার জন্য নিখুঁত কনফিগারেশন
+var forwardedHeaderOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+                       Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+};
+forwardedHeaderOptions.KnownNetworks.Clear(); // রেন্ডার প্রক্সিকে ট্রাস্ট করার জন্য এটি আবশ্যক
+forwardedHeaderOptions.KnownProxies.Clear();  // এটিও ক্লিয়ার করতে হবে
+app.UseForwardedHeaders(forwardedHeaderOptions);
+
+// বাকি কোড (যেমন: Admin role এবং প্রথম user setup) নিচে যেভাবে আছে থাকবে...
 // Admin role এবং প্রথম user setup
 using (var scope = app.Services.CreateScope())
 {
