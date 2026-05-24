@@ -101,7 +101,7 @@ namespace InventoryApp.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
             {
-                // নিজে নিজেকেও remove করতে পারবে (requirement অনুযায়ী)
+                // admin can remove themselves as well (as per requirement)
                 await _userManager.RemoveFromRoleAsync(user, "Admin");
             }
             return RedirectToAction("Index");

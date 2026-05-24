@@ -55,12 +55,12 @@ namespace InventoryApp.Models
         public string FieldTitle { get; set; } = "";
         public FieldType FieldType { get; set; }
 
-        // Numeric fields এর জন্য
+        //   For numeric fields
         public double? Average { get; set; }
         public double? Min { get; set; }
         public double? Max { get; set; }
 
-        // String fields এর জন্য
+        // for string fields
         public string? MostUsedValue { get; set; }
         public int MostUsedCount { get; set; }
     }

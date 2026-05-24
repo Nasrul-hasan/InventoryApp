@@ -123,16 +123,16 @@ namespace InventoryApp.Controllers
             var name = info.Principal.FindFirstValue(
                 System.Security.Claims.ClaimTypes.Name) ?? "FacebookUser";
 
-            // Email fake email ( ifFacebook doesn't provide email ) দিয়ে user তৈরি করো 
+            //Create fallback email if Facebook doesn't provide one 
             if (string.IsNullOrEmpty(email))
             {
                 email = $"{info.ProviderKey}@facebook.com";
             }
-            // Email দিয়ে existing user খোঁজো
+            //Check if user already exists with this email
             var existingUser = await _userManager.FindByEmailAsync(email);
             if (existingUser != null)
             {
-                // Existing account এ Facebook link করো
+                // Check if user already exists with this email
                 await _userManager.AddLoginAsync(existingUser, info);
                 await _signInManager.SignInAsync(existingUser, isPersistent: false);
                 return RedirectToAction("Index", "Home");
@@ -153,9 +153,9 @@ namespace InventoryApp.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Error হলে Login page এ যাও
+            // Redirect to login with error message if account creation fails
             var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-            TempData["Error"] = $"User তৈরি হয়নি: {errors}";
+            TempData["Error"] = $"Account creation failed: {errors}";
             return RedirectToAction("Login");
         }
 

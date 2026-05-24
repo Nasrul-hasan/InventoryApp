@@ -8,7 +8,7 @@ namespace InventoryApp.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsBlocked { get; set; } = false;
 
-        // এই user এর inventories
+        // Those inventories that this user owns. Not the ones shared with them.
         public ICollection<Inventory> OwnedInventories { get; set; } = new List<Inventory>();
     }
 }

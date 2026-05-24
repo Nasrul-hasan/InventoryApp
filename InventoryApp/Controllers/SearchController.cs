@@ -21,7 +21,7 @@ namespace InventoryApp.Controllers
 
             q = q.Trim();
 
-            // Inventories খোঁজো
+             // find the inventories
             var inventories = await _context.Inventories
                 .Include(i => i.Owner)
                 .Include(i => i.Items)
@@ -31,7 +31,7 @@ namespace InventoryApp.Controllers
                 .Take(20)
                 .ToListAsync();
 
-            // Items খোঁজো
+            // Search the ITEMS based on CustomId and FieldValuess
             var items = await _context.Items
                 .Include(i => i.Inventory)
                 .Include(i => i.FieldValues)
@@ -52,7 +52,7 @@ namespace InventoryApp.Controllers
 
             return View(vm);
         }
-        // Tag autocomplete এর জন্য
+        // This function is for tag autocompletion. 
         public async Task<IActionResult> Tags(string q)
         {
             var tags = await _context.Tags

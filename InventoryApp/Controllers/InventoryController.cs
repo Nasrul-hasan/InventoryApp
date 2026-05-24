@@ -9,6 +9,9 @@ namespace InventoryApp.Controllers
 {
     public class InventoryController : Controller
     {
+        /*
+           Controller responsible for inventory management          
+         */
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -264,7 +267,7 @@ namespace InventoryApp.Controllers
 
             if (!isOwner && !isAdmin) return Forbid();
 
-            // Email দিয়ে user খোঁজো
+            // Find user by email
             var targetUser = await _userManager.FindByEmailAsync(email);
             if (targetUser == null)
             {

@@ -26,14 +26,14 @@ namespace InventoryApp.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            // নিজের inventories
+            // self-owned inventories
             var ownedInventories = await _context.Inventories
                 .Include(i => i.Items)
                 .Where(i => i.OwnerId == user!.Id)
                 .OrderByDescending(i => i.CreatedAt)
                 .ToListAsync();
 
-            // Write access আছে এমন inventories
+            // (self-owned + shared) have write access
             var accessInventories = await _context.InventoryAccesses
                 .Include(a => a.Inventory)
                     .ThenInclude(i => i!.Items)

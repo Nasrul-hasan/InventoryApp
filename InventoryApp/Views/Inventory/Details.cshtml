@@ -8,7 +8,8 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-start mb-3">
         <div>
-            @* auto save এর জন্য title কে contenteditable করে দিলাম, এবং একটা badge যোগ করলাম যা save status দেখাবে *@
+            @* For auto-saving, make the title contenteditable and add a badge to show the save status *@
+
             <h2>
                 @if (Model.IsOwner || Model.IsAdmin)
                 {

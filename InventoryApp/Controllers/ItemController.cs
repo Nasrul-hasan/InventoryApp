@@ -227,7 +227,7 @@ namespace InventoryApp.Controllers
             item.CustomId = customId;
             item.Version += 1;
 
-            // Field values update করো
+             // update field values
             foreach (var fv in item.FieldValues)
             {
                 if (fieldValues.ContainsKey(fv.FieldId))

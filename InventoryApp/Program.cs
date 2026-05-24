@@ -90,13 +90,13 @@ forwardedHeaderOptions.KnownProxies.Clear();  // এটিও ক্লিয়া
 app.UseForwardedHeaders(forwardedHeaderOptions);
 
 // বাকি কোড (যেমন: Admin role এবং প্রথম user setup) নিচে যেভাবে আছে থাকবে...
-// Admin role এবং প্রথম user setup
+// Admin role এবং first user setup
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-    // Admin role না থাকলে তৈরি করো
+    // Admin role না থাকলে তৈরি করা
     if (!await roleManager.RoleExistsAsync("Admin"))
     {
         await roleManager.CreateAsync(new IdentityRole("Admin"));
